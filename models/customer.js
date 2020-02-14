@@ -6,12 +6,13 @@ const Reservation = require("./reservation");
 /** Customer of the restaurant. */
 
 class Customer {
-  constructor({ id, firstName, lastName, phone, notes }) {
+  constructor({ id, firstName, lastName, phone, notes}) {
     this.id = id;
     this.firstName = firstName;
     this.lastName = lastName;
     this.phone = phone;
     this.notes = notes;
+    // this.count = count;   set count=o in params. For purposes of seeing clearly our topten
   }
 
   /** find all customers. */
@@ -81,19 +82,58 @@ class Customer {
 
   fullName() {
     let fullName = `${this.firstName} ${this.lastName}`;
-    return fullName
+    return fullName;
   }
 
   static async search(name) {
+    //Determine if user input a single name or a full name
+    let firstName, lastName, names;
+    if (name.includes(" ")) {
+      names = name.split(" ");
+      firstName = names[0];
+      lastName = names[1];
+    } else {
+      firstName = name;
+      lastName = name;
+    }
+
     const results = await db.query(
       `SELECT id, 
          first_name AS "firstName",  
          last_name AS "lastName", 
          phone, 
          notes 
-        FROM customers WHERE last_name ILIKE $1 OR first_name ILIKE $1 ORDER BY last_name, first_name`,
-      [name]
+        FROM customers WHERE last_name ILIKE $1 OR first_name ILIKE $2 ORDER BY last_name, first_name`,
+      [lastName, firstName]
     );
+    
+    //Handle if user input fullname --> resets results.rows to just have the single match
+    for (let i = 0; i < results.rows.length; i++) {
+      let c = results.rows[i];
+      if (c.firstName.toLowerCase() === firstName.toLowerCase() && c.lastName.toLowerCase() === lastName.toLowerCase()) {
+        results.rows = [c];
+        break;
+      }
+    }
+    
+    return results.rows.map(c => new Customer(c));
+  }
+
+  static async topTen() {
+    const results = await db.query(
+      `SELECT c.id, 
+      c.first_name AS "firstName",  
+      c.last_name AS "lastName", 
+      c.phone, 
+      c.notes, COUNT(*) as count
+      FROM customers as c
+      JOIN reservations as r
+      ON c.id=r.customer_id
+      GROUP BY c.id
+      ORDER BY count DESC
+      LIMIT 10`
+    )
+
     return results.rows.map(c => new Customer(c));
   }
 }

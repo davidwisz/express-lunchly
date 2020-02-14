@@ -10,13 +10,31 @@ const router = new express.Router();
 /** Homepage: show list of customers. */
 
 router.get("/", async function(req, res, next) {
+  
   try {
-    const customers = await Customer.all();
+    let customers;
+    //Check for search query first, if not then return entire list of customers
+    if (req.query.name) {
+      let name = req.query.name;
+      customers = await Customer.search(name);
+    } else {
+      customers = await Customer.all();
+    }
     return res.render("customer_list.html", { customers });
   } catch (err) {
     return next(err);
   }
 });
+
+router.get("/top-ten", async function(req, res, next) {
+  try {
+    let customers = await Customer.topTen();
+    return res.render("customer_list.html", { customers });
+  } 
+  catch (err) {
+    return next(err);
+  }
+})
 
 /** Form to add a new customer. */
 
@@ -46,13 +64,7 @@ router.post("/add/", async function(req, res, next) {
   }
 });
 
-/** SEARCH **/
-router.get("/search", async function(req, res, next) {
-  let name = req.query.name;
-  let customers = await Customer.search(name);
-  return res.render("customer_list.html", { customers });
 
-});
 
 /** Show a customer, given their ID. */
 
