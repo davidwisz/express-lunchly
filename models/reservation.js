@@ -1,5 +1,5 @@
 /** Reservation for Lunchly */
-
+const ExpressError = require("../expressError");
 const moment = require("moment");
 
 const db = require("../db");
@@ -14,6 +14,37 @@ class Reservation {
     this.numGuests = numGuests;
     this.startAt = startAt;
     this.notes = notes;
+  }
+
+  get numGuests() {
+    return this._numGuests;
+  }
+
+  set numGuests(val) {
+    if (val < 1) {
+      console.log('val:', val)
+      throw new ExpressError('WRONG!', 400)
+    }
+    else {
+      this._numGuests = val;
+    }
+  }
+
+  get startAt() {
+    return this._startAt;
+  }
+
+  set startAt(val) {
+    try {
+      this._startAt = new Date(val)
+      console.log(typeof this._startAt)
+      if (this._startAt === 'Invalid Date') {
+        throw new ExpressError('WRONG DATE FORMAT!', 400);
+      }
+    }
+    catch(err) {
+      return err
+    }
   }
 
   /** formatter for startAt */

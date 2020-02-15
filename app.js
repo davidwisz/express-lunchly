@@ -4,6 +4,7 @@ const express = require("express");
 const nunjucks = require("nunjucks");
 const bodyParser = require("body-parser");
 const routes = require("./routes");
+const ExpressError = require("./expressError");
 
 const app = express();
 

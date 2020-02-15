@@ -15,6 +15,18 @@ class Customer {
     // this.count = count;   set count=o in params. For purposes of seeing clearly our topten
   }
 
+  get count() {
+    return this._count;
+  }
+
+  set count(val) {
+    //some logic
+    this._count = ': '+ val;
+  }
+
+  get fullName() {
+    return `${this.firstName} ${this.lastName}`;
+  }
   /** find all customers. */
 
   static async all() {
@@ -80,11 +92,6 @@ class Customer {
     }
   }
 
-  fullName() {
-    let fullName = `${this.firstName} ${this.lastName}`;
-    return fullName;
-  }
-
   static async search(name) {
     //Determine if user input a single name or a full name
     let firstName, lastName, names;
@@ -134,7 +141,11 @@ class Customer {
       LIMIT 10`
     )
 
-    return results.rows.map(c => new Customer(c));
+    return results.rows.map(c => { 
+      let newC = new Customer(c);
+      newC.count = c.count;
+      return newC;
+      });
   }
 }
 
